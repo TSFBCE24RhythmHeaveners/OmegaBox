@@ -973,9 +973,9 @@ export class Config {
 		{ name: "÷6", stepsPerBeat: 6, /*ticksPerArpeggio: 4, arpeggioPatterns: [[0], [0, 1], [0, 1, 2, 1], [0, 1, 2, 3]]*/ roundUpThresholds: null },
 		{ name: "÷8", stepsPerBeat: 8, /*ticksPerArpeggio: 3, arpeggioPatterns: [[0], [0, 1], [0, 1, 2, 1], [0, 1, 2, 3]]*/ roundUpThresholds: null },
         { name: "÷12", stepsPerBeat: 12, /*ticksPerArpeggio: 3, arpeggioPatterns: [[0], [0, 1], [0, 1, 2, 1]]*/ roundUpThresholds: null },
-        // { name: "÷16", stepsPerBeat: 16, /*ticksPerArpeggio: 3, arpeggioPatterns: [[0], [0, 1], [0, 1, 2, 1]],*/ roundUpThresholds: null},
+        { name: "÷16", stepsPerBeat: 16, /*ticksPerArpeggio: 3, arpeggioPatterns: [[0], [0, 1], [0, 1, 2, 1]],*/ roundUpThresholds: null},
 		{ name: "freehand (÷24)", stepsPerBeat: 24, /*ticksPerArpeggio: 3, arpeggioPatterns: [[0], [0, 1], [0, 1, 2, 1], [0, 1, 2, 3]]*/ roundUpThresholds: null },
-        // { name: "absolute freedom (÷48)",stepsPerBeat: 48, /*ticksPerArpeggio: 3, arpeggioPatterns: [[0], [0, 1],[0, 1, 2, 1]],*/ roundUpThresholds: null},
+        { name: "absolute freedom (÷48)",stepsPerBeat: 48, /*ticksPerArpeggio: 3, arpeggioPatterns: [[0], [0, 1],[0, 1, 2, 1]],*/ roundUpThresholds: null},
 	]);
 
     public static readonly instrumentTypeNames: ReadonlyArray<string> = ["chip", "FM", "noise", "spectrum", "drumset", "harmonics", "PWM", "Picked String", "supersaw", "custom chip", "mod", "FM6op"];
@@ -1148,8 +1148,10 @@ export class Config {
         { name: "normal", isSeamless: false, continues: false, slides: false, slideTicks: 3, includeAdjacentPatterns: false },
         { name: "interrupt", isSeamless: true, continues: false, slides: false, slideTicks: 3, includeAdjacentPatterns: true },
         { name: "continue", isSeamless: true, continues: true, slides: false, slideTicks: 3, includeAdjacentPatterns: true },
-        { name: "slide", isSeamless: true, continues: false, slides: true, slideTicks: 3, includeAdjacentPatterns: true },
-        { name: "slide in pattern", isSeamless: true, continues: false, slides: true, slideTicks: 3, includeAdjacentPatterns: false }
+		{ name: "slide", isSeamless: false, continues: false, slides: false, slideTicks: 3, includeAdjacentPatterns: false },
+		{ name: "slide in pattern", isSeamless: false, continues: false, slides: true, slideTicks: 3, includeAdjacentPatterns: false },
+        { name: "seamless slide", isSeamless: true, continues: false, slides: true, slideTicks: 3, includeAdjacentPatterns: true },
+        { name: "seamless slide in pattern", isSeamless: true, continues: false, slides: true, slideTicks: 3, includeAdjacentPatterns: false }
     ]);
     public static readonly vibratos: DictionaryArray<Vibrato> = toNameMap([
         { name: "none", amplitude: 0.0, type: 0, delayTicks: 0 },
@@ -1157,16 +1159,16 @@ export class Config {
         { name: "delayed", amplitude: 0.3, type: 0, delayTicks: 37 }, // It will fade in over the previous two ticks.
         { name: "heavy", amplitude: 0.45, type: 0, delayTicks: 0 },
         { name: "shaky", amplitude: 0.1, type: 1, delayTicks: 0 },
-        //    { name: "very shaky", amplitude: 1, type: 0, delayTicks: 0 },
-        //{ name: "insane", amplitude: 10, type: 1, delayTicks: 0 },
+        { name: "very shaky", amplitude: 1, type: 0, delayTicks: 0 },
+        { name: "insane", amplitude: 10, type: 1, delayTicks: 0 },
         //todbox vibratos
-        //	{ name: "super insane", amplitude: 30, type: 1, delayTicks: 1 },
+		{ name: "super insane", amplitude: 30, type: 1, delayTicks: 1 },
         //wackybox
-        //	 { name: "quiver", amplitude: 0.001, type: 0, delayTicks: 0 },
-        //  { name: "wub-wub", amplitude: 10.0, type: 0, delayTicks: 0 },
-        //     { name: "quiver delayed", amplitude: 0.001, type: 0, delayTicks: 18 },
-        //  { name: "vibrate", amplitude: 0.08, type: 0, delayTicks: 0 },
-        // { name: "too much wub ⚠", amplitude: 30.0, type: 0, delayTicks: 18 },
+        { name: "quiver", amplitude: 0.001, type: 0, delayTicks: 0 },
+        { name: "wub-wub", amplitude: 10.0, type: 0, delayTicks: 0 },
+        { name: "quiver delayed", amplitude: 0.001, type: 0, delayTicks: 18 },
+        { name: "vibrate", amplitude: 0.08, type: 0, delayTicks: 0 },
+        { name: "too much wub ⚠", amplitude: 30.0, type: 0, delayTicks: 18 },
         //too much wub breaks things just a little bit at it's original amplitude
         //sandbox
     ]);
@@ -1272,10 +1274,11 @@ export class Config {
         { name: "simultaneous", customInterval: false, arpeggiates: false, strumParts: 0, singleTone: false },
         { name: "strum", customInterval: false, arpeggiates: false, strumParts: 1, singleTone: false },
         { name: "arpeggio", customInterval: false, arpeggiates: true, strumParts: 0, singleTone: true },
+		{ name: "strumming arpeggio", customInterval: false, arpeggiates: true, strumParts: 1, singleTone: true },
         { name: "custom interval", customInterval: true, arpeggiates: false, strumParts: 0, singleTone: true },
         { name: "monophonic", customInterval: false, arpeggiates: false, strumParts: 0, singleTone: true}
     ]);
-    public static readonly maxChordSize: number = 9;
+    public static readonly maxChordSize: number = 16;
     public static readonly operatorCount: number = 4;
     public static readonly maxPitchOrOperatorCount: number = Math.max(Config.maxChordSize, Config.operatorCount + 2);
     public static readonly algorithms: DictionaryArray<Algorithm> = toNameMap([
