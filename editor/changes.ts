@@ -2,7 +2,7 @@
 
 import { Algorithm, Dictionary, FilterType, SustainType, InstrumentType, EffectType, AutomationTarget, Config, effectsIncludeDistortion, LFOEnvelopeTypes, RandomEnvelopeTypes } from "../synth/SynthConfig";
 import { NotePin, Note, makeNotePin, Pattern, FilterSettings, FilterControlPoint, SpectrumWave, HarmonicsWave, Instrument, Channel, Song, Synth, clamp } from "../synth/synth";
-import { Preset, PresetCategory, EditorConfig } from "./EditorConfig";
+import { Preset, PresetCategory, EditorConfig, fullTagList } from "./EditorConfig";
 import { Change, ChangeGroup, ChangeSequence, UndoableChange } from "./Change";
 import { SongDocument } from "./SongDocument";
 import { ColorConfig } from "./ColorConfig";
@@ -1630,6 +1630,12 @@ export class ChangeRandomGeneratedInstrument extends Change {
                             { item: "ramp", weight: 3 },
                             { item: "trapezoid", weight: 4 },
 				            { item: "quasi-sine", weight: 2 },
+                            { item: "half-sine", weight: 3 },
+                            { item: "white noise", weight: 1 },
+                            { item: "absine", weight: 3 },
+                            { item: "sharksine", weight: 3 },
+                            { item: "fastsine", weight: 3 },
+                            { item: "camelsine", weight: 5 },
                         ])].index;
                         if (instrument.operators[i].waveform == 2/*"pulse width"*/) {
                             instrument.operators[i].pulseWidth = selectWeightedRandom([
@@ -2207,6 +2213,7 @@ export class ChangeUnison extends Change {
             instrument.unisonExpression = Config.unisons[instrument.unison].expression;
             instrument.unisonSign = Config.unisons[instrument.unison].sign;
             instrument.preset = instrument.type;
+            
             doc.notifier.changed();
             this._didSomething();
         }
@@ -2482,6 +2489,21 @@ export class ChangeAliasing extends Change {
     }
 }
 
+export class ChangeInvertWave extends Change {
+    constructor(doc: SongDocument, newValue: boolean) {
+        super();
+        const instrument: Instrument = doc.song.channels[doc.channel].instruments[doc.getCurrentInstrument()];
+        const oldValue = instrument.invertWave;
+
+        doc.notifier.changed();
+        if (oldValue != newValue) {
+            instrument.invertWave = newValue;
+            instrument.preset = instrument.type;
+            this._didSomething();
+        }
+    }
+}
+
 export class ChangeSpectrum extends Change {
     constructor(doc: SongDocument, instrument: Instrument, spectrumWave: SpectrumWave) {
         super();
@@ -2654,6 +2676,27 @@ export class ChangeRingModPulseWidth extends ChangeInstrumentSlider {
     }
 }
 
+
+
+export class ChangeUpperLimit extends ChangeInstrumentSlider {
+    constructor(doc: SongDocument, oldValue: number, newValue: number) {
+        super(doc);
+        this._instrument.upperNoteLimit = newValue;
+        doc.notifier.changed();
+        if (oldValue != newValue) this._didSomething();
+    }
+}
+
+export class ChangeLowerLimit extends ChangeInstrumentSlider {
+    constructor(doc: SongDocument, oldValue: number, newValue: number) {
+        super(doc);
+        this._instrument.lowerNoteLimit = newValue;
+        doc.notifier.changed();
+        if (oldValue != newValue) this._didSomething();
+    }
+}
+
+
 export class ChangeGranular extends ChangeInstrumentSlider {
     constructor(doc: SongDocument, oldValue: number, newValue: number) {
         super(doc);
@@ -2723,6 +2766,47 @@ export class ChangeBitcrusherQuantization extends ChangeInstrumentSlider {
         if (oldValue != newValue) this._didSomething();
     }
 }
+
+export class ChangePhaserMix extends ChangeInstrumentSlider {
+    constructor(doc: SongDocument, oldValue: number, newValue: number) {
+        super(doc);
+        this._instrument.phaserMix = newValue;
+        // doc.synth.unsetMod(Config.modulators.dictionary["..."].index, doc.channel, doc.getCurrentInstrument());
+        doc.notifier.changed();
+        if (oldValue != newValue) this._didSomething();
+    }
+}
+
+export class ChangePhaserFreq extends ChangeInstrumentSlider {
+    constructor(doc: SongDocument, oldValue: number, newValue: number) {
+        super(doc);
+        this._instrument.phaserFreq = newValue;
+        // doc.synth.unsetMod(Config.modulators.dictionary["..."].index, doc.channel, doc.getCurrentInstrument());
+        doc.notifier.changed();
+        if (oldValue != newValue) this._didSomething();
+    }
+}
+
+export class ChangePhaserFeedback extends ChangeInstrumentSlider {
+    constructor(doc: SongDocument, oldValue: number, newValue: number) {
+        super(doc);
+        this._instrument.phaserFeedback = newValue;
+        // doc.synth.unsetMod(Config.modulators.dictionary["..."].index, doc.channel, doc.getCurrentInstrument());
+        doc.notifier.changed();
+        if (oldValue != newValue) this._didSomething();
+    }
+}
+
+export class ChangePhaserStages extends ChangeInstrumentSlider {
+    constructor(doc: SongDocument, oldValue: number, newValue: number) {
+        super(doc);
+        this._instrument.phaserStages = newValue;
+        // doc.synth.unsetMod(Config.modulators.dictionary["..."].index, doc.channel, doc.getCurrentInstrument());
+        doc.notifier.changed();
+        if (oldValue != newValue) this._didSomething();
+    }
+}
+
 
 export class ChangeStringSustain extends ChangeInstrumentSlider {
     constructor(doc: SongDocument, oldValue: number, newValue: number) {
@@ -4289,17 +4373,86 @@ export class ChangeDetectKey extends ChangeGroup {
 
 export function pickRandomPresetValue(isNoise: boolean,rollNoveltyPresets: boolean): number {
     const eligiblePresetValues: number[] = [];
+    const _presetTagsInputBox = document.getElementById("presetTagsInputBox") as HTMLInputElement;
+    
+    let tagList: any = _presetTagsInputBox.value.toLowerCase().split(/\s+/);
+
+    //checking for valid tags
+    if (!(tagList == "") && !(tagList.every((tag: any) => (fullTagList.includes(tag)) || (tag.startsWith("!") && fullTagList.includes(tag.slice(1)))))) {
+        return -2;
+    }
+
     for (let categoryIndex: number = 0; categoryIndex < EditorConfig.presetCategories.length; categoryIndex++) {
         const category: PresetCategory = EditorConfig.presetCategories[categoryIndex];
         if ((category.name.includes("Novelty") && rollNoveltyPresets == false) || category.name == "Unmodified") continue;
         for (let presetIndex: number = 0; presetIndex < category.presets.length; presetIndex++) {
             const preset: Preset = category.presets[presetIndex];
-            if (preset.settings != undefined && (preset.isNoise == true) == isNoise ) {
+            if ((preset.settings != undefined && (preset.isNoise == true) == isNoise) && ((tagList == "") || (
+                
+                tagList.every((tag: any) => 
+                (tag.startsWith("!") && !preset.tags.includes(tag.slice(1))) || 
+                (!tag.startsWith("!") && preset.tags.includes(tag))
+
+            )))) {    
                 eligiblePresetValues.push((categoryIndex << 12) + presetIndex);
             }
         }
     }
-    return eligiblePresetValues[(Math.random() * eligiblePresetValues.length) | 0];
+    if (eligiblePresetValues.length > 0) {
+        return eligiblePresetValues[(Math.random() * eligiblePresetValues.length) | 0];
+    } else {
+        return -1; //no results
+    }
+    
+}
+
+export function pickNextPresetValue(isNoise: boolean,rollNoveltyPresets: boolean): number {
+    const eligiblePresetValues: number[] = [];
+    const _presetTagsInputBox = document.getElementById("presetTagsInputBox") as HTMLInputElement;
+    const _pitchedPresetSelect = document.getElementById("pitchPresetSelect") as HTMLInputElement;
+    const _drumPresetSelect = document.getElementById("drumPresetSelect") as HTMLInputElement;
+    
+    let currentPresetValue: any = 0;
+    let nextPresetIndex: any = 0;
+
+    if (isNoise) { currentPresetValue = _drumPresetSelect.value; } 
+    else { currentPresetValue = _pitchedPresetSelect.value; }  
+
+    let tagList: any = _presetTagsInputBox.value.toLowerCase().split(/\s+/);
+
+    //checking for valid tags
+    if (!(tagList == "") && !(tagList.every((tag: any) => (fullTagList.includes(tag)) || (tag.startsWith("!") && fullTagList.includes(tag.slice(1)))))) {
+        return -2;
+    }
+
+    for (let categoryIndex: number = 0; categoryIndex < EditorConfig.presetCategories.length; categoryIndex++) {
+        const category: PresetCategory = EditorConfig.presetCategories[categoryIndex];
+        if ((category.name.includes("Novelty") && rollNoveltyPresets == false) || category.name == "Unmodified") continue;
+        for (let presetIndex: number = 0; presetIndex < category.presets.length; presetIndex++) {
+            const preset: Preset = category.presets[presetIndex];
+            
+            if ((preset.settings != undefined && (preset.isNoise == true) == isNoise) && ((tagList == "") || (
+                
+                tagList.every((tag: any) => 
+                (tag.startsWith("!") && !preset.tags.includes(tag.slice(1))) || 
+                (!tag.startsWith("!") && preset.tags.includes(tag))
+
+            )))) {    
+                eligiblePresetValues.push((categoryIndex << 12) + presetIndex);
+                if ((categoryIndex << 12) + presetIndex == currentPresetValue) {
+                    nextPresetIndex = eligiblePresetValues.length
+                }
+            }
+        }
+    }
+
+    if (eligiblePresetValues.length > 0) {
+        if (eligiblePresetValues[nextPresetIndex] == undefined) { nextPresetIndex = 0; } //wraparound behavior
+        return eligiblePresetValues[nextPresetIndex];
+    } else {
+        return -1; //no results
+    }
+    
 }
 
 export function setDefaultInstruments(song: Song): void {

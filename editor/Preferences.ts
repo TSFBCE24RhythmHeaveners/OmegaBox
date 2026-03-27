@@ -25,7 +25,8 @@ export class Preferences {
 	public enableChannelMuting: boolean = true;
 	public colorTheme: string;
 	public layout: string;
-	public displayBrowserUrl: boolean;
+	//public displayBrowserUrl: boolean; //comment for testing
+	public displayBrowserUrl: boolean = false; //uncomment for testing
 	public volume: number = 75;
 	public visibleOctaves: number = Preferences.defaultVisibleOctaves;
 	public pressControlForShortcuts: boolean;
@@ -44,8 +45,9 @@ export class Preferences {
 	public showInstrumentScrollbars: boolean;
 	public closePromptByClickoff: boolean;
 	public frostedGlassBackground: boolean;
-
+	//jukebox
 	public rollNoveltyPresets: boolean;
+	public enableTagSearch: boolean;
 
 	constructor() {
 		this.reload();
@@ -66,7 +68,7 @@ export class Preferences {
 		this.instrumentImportExport = window.localStorage.getItem("instrumentImportExport") == "true";
 		this.instrumentButtonsAtTop = window.localStorage.getItem("instrumentButtonsAtTop") == "true";
 		this.enableChannelMuting = window.localStorage.getItem("enableChannelMuting") != "false";
-		this.displayBrowserUrl = window.localStorage.getItem("displayBrowserUrl") != "false";
+		//this.displayBrowserUrl = window.localStorage.getItem("displayBrowserUrl") != "false"; //comment for testing
 		this.pressControlForShortcuts = window.localStorage.getItem("pressControlForShortcuts") == "true";
 		this.enableMidi = window.localStorage.getItem("enableMidi") != "false";
 		this.showRecordButton = window.localStorage.getItem("showRecordButton") == "true";
@@ -88,9 +90,10 @@ export class Preferences {
 		this.customTheme = window.localStorage.getItem("customTheme");
         this.customTheme2 = window.localStorage.getItem("customTheme2");
 		this.visibleOctaves = ((<any>window.localStorage.getItem("visibleOctaves")) >>> 0) || Preferences.defaultVisibleOctaves;
-		
+		//jukebox
 		this.rollNoveltyPresets = window.localStorage.getItem("rollNoveltyPresets") == "true";
-
+		this.enableTagSearch = window.localStorage.getItem("enableTagSearch") != "false";
+		
 		const defaultScale: Scale | undefined = Config.scales.dictionary[window.localStorage.getItem("defaultScale")!];
 		this.defaultScale = (defaultScale != undefined) ? defaultScale.index : 0;
 		
@@ -144,7 +147,8 @@ export class Preferences {
 		window.localStorage.setItem("customTheme2", this.customTheme2!);
 		window.localStorage.setItem("volume", String(this.volume));
 		window.localStorage.setItem("visibleOctaves", String(this.visibleOctaves));
-		
+		//jukebox
 		window.localStorage.setItem("rollNoveltyPresets", this.rollNoveltyPresets ? "true" : "false");
+		window.localStorage.setItem("enableTagSearch", this.enableTagSearch ? "true" : "false");
 	}
 }
